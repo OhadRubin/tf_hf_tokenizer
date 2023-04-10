@@ -1,0 +1,20 @@
+[package]
+name = "rust_tensorflow_bindings"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ndarray = "0.15.3"
+tokenizers = "0.13.3"
+libc = "0.2"
+
+[dependencies.cpython]
+version = "0.6"
+features = ["extension-module"]
+
+
+[lib]
+name = "rust_tensorflow_bindings"
+crate-type = ["cdylib"]
