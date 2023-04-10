@@ -13,16 +13,18 @@ pub extern "C" fn process_strings(
     let string_ptrs = unsafe { std::slice::from_raw_parts(strings, len) };
     let string_vec: Vec<String> = string_ptrs
         .iter()
-        .map(|&ptr| unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().to_string())
+        .map(|&ptr| unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned())
         .collect();
 
     // Load the tokenizer
     let tokenizer = Tokenizer::from_pretrained("bert-base-cased", None).unwrap();
 
-    // Process the vector of strings
+// Process the vector of strings
+    let inputs: Vec<EncodeInput> = string_vec.iter().map(|s| InputSequence::from(s.to_owned()).into()).collect();
+    let encodings = tokenizer.encode_batch(inputs, false).unwrap();
+
     let mut offset = 0;
-    for s in &string_vec {
-        let encoding = tokenizer.encode(EncodeInput::Single(InputSequence::from(s.to_owned())), false).unwrap();
+    for encoding in encodings {
         let ids = encoding.get_ids();
         if offset + ids.len() <= result_len {
             unsafe {
