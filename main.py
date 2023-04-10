@@ -1,24 +1,22 @@
-import ctypes
-import numpy as np
 import tensorflow as tf
 
-lib = ctypes.cdll.LoadLibrary("./target/release/librust_tensorflow_bindings.so")
-lib.process_strings.argtypes = [
-    ctypes.POINTER(ctypes.c_char_p),
-    ctypes.c_size_t,
-    ctypes.POINTER(ctypes.c_uint),
-    ctypes.c_size_t,
+# Load the compiled shared library containing the custom operation
+from tensorflow.python.framework import load_library
+from tensorflow.python.platform import resource_loader
+
+custom_op_lib = load_library.load_op_library(
+    resource_loader.get_path_to_datafile('custom_op.so'))
+
+# Define a list of input strings
+input_strings = [
+    "Hello, how are you?",
+    "This is a test.",
+    "Custom operation in TensorFlow.",
 ]
-lib.process_strings.restype = None
 
+# Convert the input strings to a TensorFlow constant tensor
+input_tensor = tf.constant(input_strings, dtype=tf.string)
 
-def tokenize(ragged_tensor):
-    result = (ctypes.c_uint * 1000)()
-    string_list = ragged_tensor.flat_values.numpy().tolist()
-    string_pointers = [ctypes.c_char_p(s) for s in string_list]
-    string_pointers_array = (ctypes.c_char_p * len(string_pointers))(*string_pointers)
-    lib.process_strings(string_pointers_array, len(string_pointers), result, len(result))
-    return np.trim_zeros(np.ctypeslib.as_array(result))
-
-ragged_tensor = tf.ragged.constant([["Hello World"],["Rust", "Python"]])
-print(tokenize(ragged_tensor))
+# Call the custom operation 'ProcessStrings'
+output_tensor = custom_op_lib.process_strings(input=input_tensor)
+print(output_tensor.numpy())

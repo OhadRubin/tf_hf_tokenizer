@@ -16,5 +16,5 @@ features = ["extension-module"]
 
 
 [lib]
-name = "rust_tensorflow_bindings"
+name = "rust_library"
 crate-type = ["cdylib"]
